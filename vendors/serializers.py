@@ -18,3 +18,13 @@ class VendorSerializer(serializers.Serializer):
         instance.vendor_code = validated_data.get('vendor_code', instance.vendor_code)
         instance.save()
         return instance
+    
+class PurchaseOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchaseOrder
+        fields = '__all__'
+    
+class VendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vendor
+        fields = '__all__'

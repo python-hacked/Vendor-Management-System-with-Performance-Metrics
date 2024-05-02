@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.db.models import Count, Avg
+from django.utils import timezone
 
 # Create your models here.
 class Vendor(models.Model):
@@ -14,6 +15,36 @@ class Vendor(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+    def update_performance_metrics(self):
+        # Calculate On-Time Delivery Rate
+        completed_orders_count = self.purchaseorder_set.filter(status='completed').count()
+        if completed_orders_count > 0:
+            on_time_delivery_count = self.purchaseorder_set.filter(status='completed', delivery_date__lte=timezone.now()).count()
+            self.on_time_delivery_rate = (on_time_delivery_count / completed_orders_count) * 100
+        else:
+            self.on_time_delivery_rate = 0
+
+        # Calculate Quality Rating Average
+        completed_orders_with_rating = self.purchaseorder_set.filter(status='completed').exclude(quality_rating__isnull=True)
+        self.quality_rating_avg = completed_orders_with_rating.aggregate(avg_rating=Avg('quality_rating'))['avg_rating'] or 0
+
+        # Calculate Average Response Time
+        acknowledged_orders = self.purchaseorder_set.filter(status='completed').exclude(acknowledgment_date__isnull=True)
+        response_times = [(order.acknowledgment_date - order.issue_date).total_seconds() for order in acknowledged_orders]
+        self.average_response_time = sum(response_times) / len(response_times) if response_times else 0
+
+        # Calculate Fulfilment Rate
+        fulfilled_orders_count = self.purchaseorder_set.filter(status='completed', quality_rating__isnull=False).count()
+        issued_orders_count = self.purchaseorder_set.count()
+        if issued_orders_count > 0:
+            self.fulfillment_rate = (fulfilled_orders_count / issued_orders_count) * 100
+        else:
+            self.fulfillment_rate = 0
+
+        # Save updated performance metrics
+        self.save()
 
 
 class PurchaseOrder(models.Model):
