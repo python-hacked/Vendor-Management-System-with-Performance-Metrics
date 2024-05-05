@@ -13,8 +13,6 @@ urlpatterns = [
     path('api/purchase_orders/<str:po_number>/update/',views.update_purchase_order, name='purchase-order-update'),
     path('api/purchase_orders/<str:po_number>/delete/',views.delete_purchase_order, name='purchase-order-delete'),
     path('api/vendors/<int:vendor_id>/performance/', views.get_vendor_performance, name='vendor-performance'),
-    # path('api/vendors/<int:vendor_id>/performance/', api_views.get_vendor_performance, name='vendor-performance'),
-
 
 ]
 
